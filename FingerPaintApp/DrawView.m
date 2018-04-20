@@ -12,6 +12,9 @@
 @interface DrawView ()
 
 @property (nonatomic) NSMutableArray *linesArray;
+@property (nonatomic) CGFloat strokeWidth;
+@property (nonatomic) NSTimeInterval previousTimestamp;
+@property (nonatomic) CGPoint firstPoint;
 
 @end
 
@@ -29,7 +32,7 @@
 - (void)drawRect:(CGRect)rect {
     // Drawing code
     UIBezierPath *path = [UIBezierPath bezierPath];
-    path.lineWidth = 5.0;
+    path.lineWidth = self.strokeWidth;
     path.lineCapStyle = kCGLineCapRound;
     [[UIColor yellowColor] setStroke];
     
@@ -47,10 +50,13 @@
 -(void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
     UITouch *touch = [touches anyObject];
 
-    CGPoint firstPoint = [touch locationInView:self];
-    Line *line = [[Line alloc] initWithPoints:firstPoint
-                                             :firstPoint];
+    self.firstPoint = [touch locationInView:self];
+    Line *line = [[Line alloc] initWithPoints:self.firstPoint
+                                             :self.firstPoint];
     [self.linesArray addObject:line];
+    
+    self.previousTimestamp = event.timestamp;
+    self.strokeWidth = 1;
     
     [self setNeedsDisplay];
 }
@@ -64,6 +70,10 @@
                                              :currentPoint];
     
     [self.linesArray addObject:line];
+    
+    if (fabs(currentPoint.x - self.firstPoint.x) > 100 || fabs(currentPoint.y - self.firstPoint.y) > 100) {
+        self.strokeWidth++;
+    }
     
     [self setNeedsDisplay];
 }
